@@ -43,9 +43,18 @@ describe "User pages" do
       it "should create a user" do
         expect { click_button submit }.to change(User, :count).by(1)
       end
+
+      describe "after saving the user" do
+        before { click_button submit }
+        let(:user) { User.find_by(email: 'user@example.com') }
+
+        it { should have_link('Sign out') }
+        it { should have_title(user.name) }
+        it { should have_selector('div.alert.alert-success', text: 'Welcome') }
+      end
+
     end
   end
-
 end
 
 describe User do
@@ -62,6 +71,7 @@ describe User do
   it { should respond_to(:password_digest) }
   it { should respond_to(:password) }
   it { should respond_to(:password_confirmation) }
+  it { should respond_to(:remember_token) }
   it { should respond_to(:authenticate) }
   it { should be_valid }
 
@@ -114,8 +124,14 @@ describe "return value of authenticate method" do
     specify { expect(user_for_invalid_password).to be_false }
   end
 end
+
 describe "with a password that's too short" do
   before { @user.password = @user.password_confirmation = "a" * 5 }
   it { should be_invalid }
 end
+
+describe "remember token" do
+    before { @user.save }
+    its(:remember_token) { should_not be_blank }
+  end
 end
